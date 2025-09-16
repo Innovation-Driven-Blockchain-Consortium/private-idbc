@@ -125,6 +125,35 @@ check_install_go() {
     return 0
 }
 
+# Function to check and install yq
+check_install_yq() {
+    echo -e "${BLUE}🔍 Checking if yq is installed...${NC}"
+    
+    if command -v yq &> /dev/null; then
+        echo -e "${GREEN}✅ yq is already installed!${NC}"
+        yq --version
+    else
+        echo -e "${YELLOW}⚠️  yq not found. Installing yq...${NC}"
+        
+        echo -e "${CYAN}🔄 Updating package list...${NC}"
+        sudo apt-get update
+        
+        echo -e "${CYAN}⬇️  Installing yq...${NC}"
+        sudo apt-get install -y yq
+        
+        # Verify installation
+        if command -v yq &> /dev/null; then
+            echo -e "${GREEN}✅ yq successfully installed!${NC}"
+            yq --version
+        else
+            echo -e "${RED}❌ Failed to install yq${NC}"
+            return 1
+        fi
+    fi
+    echo ""
+    return 0
+}
+
 # Function to start the network
 start_network() {
     echo -e "${CYAN}🚀 Spinning up private testing network...${NC}"
@@ -172,6 +201,12 @@ run_explorer() {
     # Check if Go is installed
     if ! check_install_go; then
         echo -e "${RED}❌ Cannot proceed without Go installed${NC}"
+        return 1
+    fi
+    
+    # Check if yq is installed
+    if ! check_install_yq; then
+        echo -e "${RED}❌ Cannot proceed without yq installed${NC}"
         return 1
     fi
     

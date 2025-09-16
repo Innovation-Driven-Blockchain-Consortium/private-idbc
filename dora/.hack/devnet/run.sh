@@ -7,8 +7,11 @@ else
   config_file="${__dir}/kurtosis.devnet.config.yaml"
 fi
 
+## Cusotom Enclave name
+NETWORK_NAME="private-testnet-idbc"
+
 ## Run devnet using kurtosis
-ENCLAVE_NAME="${ENCLAVE_NAME:-dora}"
+ENCLAVE_NAME="${NETWORK_NAME:-dora}"
 ETHEREUM_PACKAGE="${ETHEREUM_PACKAGE:-github.com/ethpandaops/ethereum-package}"
 if kurtosis enclave inspect "$ENCLAVE_NAME" > /dev/null; then
   echo "Kurtosis enclave '$ENCLAVE_NAME' is already up."
