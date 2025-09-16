@@ -44,6 +44,35 @@ check_install_kurtosis() {
     echo ""
 }
 
+# Function to check and install make
+check_install_make() {
+    echo -e "${BLUE}🔍 Checking if make is installed...${NC}"
+    
+    if command -v make &> /dev/null; then
+        echo -e "${GREEN}✅ Make is already installed!${NC}"
+        make --version | head -n 1
+    else
+        echo -e "${YELLOW}⚠️  Make not found. Installing make...${NC}"
+        
+        echo -e "${CYAN}🔄 Updating package list...${NC}"
+        sudo apt update
+        
+        echo -e "${CYAN}⬇️  Installing build-essential (includes make)...${NC}"
+        sudo apt install -y build-essential
+        
+        # Verify installation
+        if command -v make &> /dev/null; then
+            echo -e "${GREEN}✅ Make successfully installed!${NC}"
+            make --version | head -n 1
+        else
+            echo -e "${RED}❌ Failed to install make${NC}"
+            return 1
+        fi
+    fi
+    echo ""
+    return 0
+}
+
 # Function to start the network
 start_network() {
     echo -e "${CYAN}🚀 Spinning up private testing network...${NC}"
@@ -81,6 +110,13 @@ show_status() {
 # Function to run local explorer
 run_explorer() {
     echo -e "${CYAN}🔍 Starting local Dora explorer...${NC}"
+    
+    # Check if make is installed
+    if ! check_install_make; then
+        echo -e "${RED}❌ Cannot proceed without make installed${NC}"
+        return 1
+    fi
+    
     echo -e "${YELLOW}⚙️  Running explorer in dora directory...${NC}"
     
     # Check if dora directory exists
