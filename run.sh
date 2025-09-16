@@ -73,6 +73,58 @@ check_install_make() {
     return 0
 }
 
+# Function to check and install Go
+check_install_go() {
+    echo -e "${BLUE}🔍 Checking if Go is installed...${NC}"
+    
+    if command -v go &> /dev/null; then
+        echo -e "${GREEN}✅ Go is already installed!${NC}"
+        go version
+    else
+        echo -e "${YELLOW}⚠️  Go not found. Installing Go...${NC}"
+        
+        # Get the latest Go version (you can modify this to a specific version)
+        GO_VERSION="1.21.5"
+        GO_TAR="go${GO_VERSION}.linux-amd64.tar.gz"
+        
+        echo -e "${CYAN}⬇️  Downloading Go ${GO_VERSION}...${NC}"
+        wget -q "https://golang.org/dl/${GO_TAR}" -O "/tmp/${GO_TAR}"
+        
+        if [ $? -eq 0 ]; then
+            echo -e "${CYAN}📦 Installing Go...${NC}"
+            sudo rm -rf /usr/local/go
+            sudo tar -C /usr/local -xzf "/tmp/${GO_TAR}"
+            
+            # Add Go to PATH for current session
+            export PATH=$PATH:/usr/local/go/bin
+            
+            # Add Go to PATH permanently
+            if ! grep -q "/usr/local/go/bin" ~/.bashrc; then
+                echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+                echo -e "${BLUE}💡 Added Go to PATH in ~/.bashrc${NC}"
+            fi
+            
+            # Clean up
+            rm "/tmp/${GO_TAR}"
+            
+            # Verify installation
+            if command -v go &> /dev/null; then
+                echo -e "${GREEN}✅ Go successfully installed!${NC}"
+                go version
+                echo -e "${YELLOW}💡 You may need to restart your terminal or run 'source ~/.bashrc' for PATH changes to take effect${NC}"
+            else
+                echo -e "${RED}❌ Failed to install Go${NC}"
+                return 1
+            fi
+        else
+            echo -e "${RED}❌ Failed to download Go${NC}"
+            return 1
+        fi
+    fi
+    echo ""
+    return 0
+}
+
 # Function to start the network
 start_network() {
     echo -e "${CYAN}🚀 Spinning up private testing network...${NC}"
@@ -117,6 +169,12 @@ run_explorer() {
         return 1
     fi
     
+    # Check if Go is installed
+    if ! check_install_go; then
+        echo -e "${RED}❌ Cannot proceed without Go installed${NC}"
+        return 1
+    fi
+    
     echo -e "${YELLOW}⚙️  Running explorer in dora directory...${NC}"
     
     # Check if dora directory exists
@@ -129,6 +187,10 @@ run_explorer() {
     # Change to dora directory and run make devnet-run
     cd ./dora
     echo -e "${BLUE}📁 Changed to dora directory${NC}"
+    
+    # Set Go environment variables if needed
+    export PATH=$PATH:/usr/local/go/bin
+    
     make devnet-run
     
     if [ $? -eq 0 ]; then
